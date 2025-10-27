@@ -1,0 +1,20 @@
+# Versión de la configuración de ngrok
+version: 2
+
+# Nivel de detalle de los logs (debug muestra toda la información)
+log_level: debug
+
+# Definición de túneles
+tunnels:
+    # Nombre del túnel (puede ser cualquier nombre)
+    n8n:
+        # Protocolo a usar (http para tráfico web)
+        proto: http
+        
+        # Dirección interna del servicio a exponer
+        # "n8n" es el nombre del contenedor y "5678" es el puerto donde corre n8n
+        addr: n8n:5678
+        
+        # Dominio estático reservado en ngrok (plan gratuito permite 1 dominio)
+        # Reservar en: https://dashboard.ngrok.com/cloud-edge/domains
+        domain: kareen-arrant-antonette.ngrok-free.dev

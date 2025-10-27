@@ -1,0 +1,49 @@
+services:
+  # Servicio de n8n - Herramienta de automatización de workflows
+  n8n:
+    container_name: n8n  # Nombre del contenedor para identificarlo fácilmente
+    image: n8nio/n8n:latest  # Imagen oficial de n8n (última versión)
+    environment:
+      # Variables de entorno que configuran n8n
+      - WEBHOOK_URL=${URL}  # URL pública para recibir webhooks
+      - N8N_EDITOR_BASE_URL=${URL}  # URL base para acceder al editor de n8n
+      - TZ=${GENERIC_TIMEZONE}  # Zona horaria del sistema
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}  # Zona horaria para n8n
+    networks:
+      - n8n-network  # Red interna para comunicación entre contenedores
+    volumes:
+      # Volumen persistente para guardar datos de n8n (workflows, credenciales, etc.)
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped  # Reinicia automáticamente si se cae (excepto si se detiene manualmente)
+
+  # Servicio de ngrok - Crea un túnel seguro para exponer n8n a internet
+  ngrok:
+    container_name: ngrok  # Nombre del contenedor
+    image: ngrok/ngrok:latest  # Imagen oficial de ngrok
+    environment:
+      # Token de autenticación de ngrok (requerido)
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    command:
+      # Comandos para iniciar ngrok con configuración personalizada
+      - "start"  # Inicia el túnel
+      - "--all"  # Inicia todos los túneles definidos en ngrok.yml
+      - "--config"  # Especifica archivo de configuración
+      - "/etc/ngrok.yml"  # Ruta del archivo de configuración dentro del contenedor
+    networks:
+      - n8n-network  # Misma red que n8n para poder comunicarse
+    volumes:
+      # Monta el archivo de configuración local dentro del contenedor
+      - ./ngrok.yml:/etc/ngrok.yml
+    restart: unless-stopped  # Reinicia automáticamente si se cae
+    depends_on:
+      # Espera a que n8n esté listo antes de iniciar ngrok
+      - n8n
+
+# Definición de volúmenes persistentes (los datos se mantienen aunque se elimine el contenedor)
+volumes:
+  n8n_data:  # Volumen para datos de n8n
+
+# Definición de redes (permiten que los contenedores se comuniquen entre sí)
+networks:
+  n8n-network:
+    driver: bridge  # Tipo de red (bridge es la más común para comunicación local)
